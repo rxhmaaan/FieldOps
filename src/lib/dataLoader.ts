@@ -9,7 +9,9 @@ export async function loadTerminalData(): Promise<TerminalRecord[]> {
   }
 
   try {
-    const response = await fetch('/data/terminals.xlsx');
+    // Use import.meta.env.BASE_URL for GitHub Pages compatibility
+    const basePath = import.meta.env.BASE_URL || '/';
+    const response = await fetch(`${basePath}data/terminals.xlsx`);
     const arrayBuffer = await response.arrayBuffer();
     const workbook = XLSX.read(arrayBuffer, { type: 'array' });
     
