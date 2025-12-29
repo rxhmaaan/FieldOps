@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TraceOne - e& Field Operations</title>
+    <script>
+      // SPA redirect for GitHub Pages
+      // Redirects 404 requests to index.html with the path preserved
+      const path = window.location.pathname;
+      const search = window.location.search;
+      const hash = window.location.hash;
+      window.location.replace(
+        window.location.origin + 
+        (window.location.pathname.split('/')[1] ? '/' + window.location.pathname.split('/')[1] : '') + 
+        '/#' + path + search + hash
+      );
+    </script>
+  </head>
+  <body>
+    <noscript>Redirecting...</noscript>
+  </body>
+</html>
