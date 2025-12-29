@@ -11,7 +11,7 @@ export function Header() {
         />
       </div>
       <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-3">
-        Terminal & Serial Lookup
+        TraceOne
       </h1>
       <p className="text-base text-muted-foreground max-w-md mx-auto">
         An initiative from e& Field Operations Innovation Initiatives.
