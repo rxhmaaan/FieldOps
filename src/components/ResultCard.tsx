@@ -1,28 +1,21 @@
-import { format } from 'date-fns';
 import { SearchResult } from '@/types/terminal';
-import { Terminal, Hash, Building2, MapPin, Cpu, Calendar } from 'lucide-react';
+import { Terminal, Hash, Building2, MapPin, Cpu } from 'lucide-react';
 
 interface ResultCardProps {
   result: SearchResult;
 }
 
 export function ResultCard({ result }: ResultCardProps) {
-  const formatDate = (date: Date) => {
-    try {
-      if (!date || isNaN(date.getTime())) return 'N/A';
-      return format(date, 'dd MMM yyyy');
-    } catch {
-      return 'N/A';
-    }
-  };
-
   return (
     <div className="animate-slide-up">
-      <div className="bg-card rounded-xl border border-border card-elevated overflow-hidden">
+      <div className="bg-card rounded-xl border border-border card-elevated overflow-hidden relative">
+        {/* Subtle glow accent */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent pointer-events-none" />
+        
         {/* Header */}
-        <div className="bg-primary/5 border-b border-border px-6 py-4">
+        <div className="bg-primary/5 border-b border-border px-6 py-4 relative">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
+            <div className="p-2 bg-primary/10 rounded-lg animate-glow-pulse">
               <Terminal className="h-5 w-5 text-primary" />
             </div>
             <div>
@@ -33,7 +26,7 @@ export function ResultCard({ result }: ResultCardProps) {
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 relative">
           {/* Primary Info Row */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Terminal ID */}
@@ -54,7 +47,7 @@ export function ResultCard({ result }: ResultCardProps) {
                 <span className="text-sm font-medium">Serial Number</span>
               </div>
               <div className="inline-flex items-center gap-2">
-                <span className="px-3 py-1.5 bg-accent/10 text-accent font-mono font-bold text-lg rounded-md">
+                <span className="px-3 py-1.5 bg-primary/10 text-primary font-mono font-bold text-lg rounded-md">
                   {result.serialNo || 'N/A'}
                 </span>
               </div>
@@ -77,7 +70,7 @@ export function ResultCard({ result }: ResultCardProps) {
           <div className="h-px bg-border" />
 
           {/* Secondary Info Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* City */}
             <div className="space-y-1.5">
               <div className="flex items-center gap-2 text-muted-foreground">
@@ -94,15 +87,6 @@ export function ResultCard({ result }: ResultCardProps) {
                 <span className="text-sm font-medium">Model</span>
               </div>
               <p className="text-base font-medium">{result.currentModel || 'N/A'}</p>
-            </div>
-
-            {/* Assignment Date */}
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Calendar className="h-4 w-4" />
-                <span className="text-sm font-medium">Assignment Date</span>
-              </div>
-              <p className="text-base font-medium">{formatDate(result.assignmentDate)}</p>
             </div>
           </div>
         </div>

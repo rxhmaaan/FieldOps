@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["IBM Plex Sans", "sans-serif"],
-        mono: ["IBM Plex Mono", "monospace"],
+        sans: ["Inter", "sans-serif"],
+        mono: ["Space Grotesk", "monospace"],
       },
       colors: {
         border: "hsl(var(--border))",
