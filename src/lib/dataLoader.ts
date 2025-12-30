@@ -19,9 +19,9 @@ function parseExcelDate(dateValue: unknown): Date | undefined {
 }
 
 export async function loadTerminalData(): Promise<TerminalRecord[]> {
-  if (cachedData) {
-    return cachedData;
-  }
+  // Clear cache to ensure fresh data load with new columns
+  // TODO: Remove this after confirming data loads correctly
+  cachedData = null;
 
   try {
     // Use import.meta.env.BASE_URL for GitHub Pages compatibility
@@ -42,32 +42,37 @@ export async function loadTerminalData(): Promise<TerminalRecord[]> {
 
     // Get headers from first row
     const headers = jsonData[0] as string[];
+    console.log('Excel headers found:', headers);
     
     // Map column indices
     const colMap: Record<string, number> = {};
     const replacementCols: number[] = [];
     
     headers.forEach((header, idx) => {
+      if (!header) return;
       const normalized = String(header).toLowerCase().trim();
+      
       if (normalized.includes('tid') || normalized === 'terminal id') {
         colMap['tid'] = idx;
       } else if (normalized.includes('serial')) {
         colMap['serialNo'] = idx;
       } else if (normalized.includes('city')) {
         colMap['city'] = idx;
-      } else if (normalized.includes('model') || normalized.includes('current model')) {
+      } else if (normalized.includes('model')) {
         colMap['currentModel'] = idx;
-      } else if (normalized.includes('merchant') || normalized.includes('mid')) {
+      } else if (normalized.includes('merchant')) {
         colMap['merchantNameMid'] = idx;
-      } else if (normalized.includes('assignment') && normalized.includes('date')) {
+      } else if (normalized.includes('assignment')) {
         colMap['assignmentDate'] = idx;
-      } else if (normalized.includes('installation') && normalized.includes('date')) {
+      } else if (normalized.includes('installation')) {
         colMap['installationDate'] = idx;
-      } else if (normalized.includes('replacement') && normalized.includes('date')) {
-        // Capture all replacement date columns (1st through 6th)
+      } else if (normalized.includes('replacement')) {
         replacementCols.push(idx);
       }
     });
+    
+    console.log('Column mapping:', colMap);
+    console.log('Replacement date columns:', replacementCols);
 
     // Parse data rows
     const records: TerminalRecord[] = [];
@@ -138,6 +143,11 @@ export function searchTerminals(data: TerminalRecord[], query: string): SearchRe
   // If we found by serial number, return that exact record
   const serialMatch = matches.find(r => r.serialNo.toUpperCase() === normalizedQuery);
   if (serialMatch) {
+    console.log('Search result (serial match):', {
+      ...serialMatch,
+      installationDate: serialMatch.installationDate?.toISOString(),
+      replacementDates: serialMatch.replacementDates.map(d => d.toISOString())
+    });
     return serialMatch;
   }
   
@@ -146,7 +156,13 @@ export function searchTerminals(data: TerminalRecord[], query: string): SearchRe
     b.assignmentDate.getTime() - a.assignmentDate.getTime()
   );
   
-  return sortedMatches[0];
+  const result = sortedMatches[0];
+  console.log('Search result (TID match):', {
+    ...result,
+    installationDate: result.installationDate?.toISOString(),
+    replacementDates: result.replacementDates.map(d => d.toISOString())
+  });
+  return result;
 }
 
 export function getDataStats(data: TerminalRecord[]): { totalRecords: number; uniqueTerminals: number } {
