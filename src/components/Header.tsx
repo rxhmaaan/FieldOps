@@ -26,7 +26,7 @@ export function Header() {
           <span className="mx-2">→</span>
           <span className="text-primary font-bold">10 sec</span>
         </span>
-        <span className="text-xs text-muted-foreground hidden sm:inline">instant lookup</span>
+        <span className="text-xs text-muted-foreground hidden sm:inline">instant confirmation</span>
       </div>
     </header>
   );
