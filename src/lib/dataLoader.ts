@@ -3,6 +3,21 @@ import { TerminalRecord, SearchResult } from '@/types/terminal';
 
 let cachedData: TerminalRecord[] | null = null;
 
+function parseExcelDate(dateValue: unknown): Date | undefined {
+  if (!dateValue) return undefined;
+  
+  if (typeof dateValue === 'number') {
+    // Excel date serial number
+    return new Date((dateValue - 25569) * 86400 * 1000);
+  } else if (dateValue instanceof Date) {
+    return dateValue;
+  } else if (typeof dateValue === 'string' && dateValue.trim()) {
+    const parsed = new Date(dateValue);
+    return isNaN(parsed.getTime()) ? undefined : parsed;
+  }
+  return undefined;
+}
+
 export async function loadTerminalData(): Promise<TerminalRecord[]> {
   if (cachedData) {
     return cachedData;
@@ -30,6 +45,8 @@ export async function loadTerminalData(): Promise<TerminalRecord[]> {
     
     // Map column indices
     const colMap: Record<string, number> = {};
+    const replacementCols: number[] = [];
+    
     headers.forEach((header, idx) => {
       const normalized = String(header).toLowerCase().trim();
       if (normalized.includes('tid') || normalized === 'terminal id') {
@@ -42,8 +59,13 @@ export async function loadTerminalData(): Promise<TerminalRecord[]> {
         colMap['currentModel'] = idx;
       } else if (normalized.includes('merchant') || normalized.includes('mid')) {
         colMap['merchantNameMid'] = idx;
-      } else if (normalized.includes('date') || normalized.includes('assignment')) {
+      } else if (normalized.includes('assignment') && normalized.includes('date')) {
         colMap['assignmentDate'] = idx;
+      } else if (normalized.includes('installation') && normalized.includes('date')) {
+        colMap['installationDate'] = idx;
+      } else if (normalized.includes('replacement') && normalized.includes('date')) {
+        // Capture all replacement date columns (1st through 6th)
+        replacementCols.push(idx);
       }
     });
 
@@ -59,20 +81,22 @@ export async function loadTerminalData(): Promise<TerminalRecord[]> {
       
       if (!tid && !serialNo) continue;
       
-      // Parse date - Excel dates are numbers
-      let assignmentDate: Date;
-      const dateValue = row[colMap['assignmentDate']];
+      // Parse assignment date
+      const assignmentDate = parseExcelDate(row[colMap['assignmentDate']]) || new Date(0);
       
-      if (typeof dateValue === 'number') {
-        // Excel date serial number
-        assignmentDate = new Date((dateValue - 25569) * 86400 * 1000);
-      } else if (dateValue instanceof Date) {
-        assignmentDate = dateValue;
-      } else if (typeof dateValue === 'string') {
-        assignmentDate = new Date(dateValue);
-      } else {
-        assignmentDate = new Date(0);
+      // Parse installation date
+      const installationDate = parseExcelDate(row[colMap['installationDate']]);
+      
+      // Parse replacement dates (only include valid dates)
+      const replacementDates: Date[] = [];
+      for (const colIdx of replacementCols) {
+        const date = parseExcelDate(row[colIdx]);
+        if (date) {
+          replacementDates.push(date);
+        }
       }
+      // Sort replacement dates chronologically
+      replacementDates.sort((a, b) => a.getTime() - b.getTime());
       
       records.push({
         tid,
@@ -81,6 +105,8 @@ export async function loadTerminalData(): Promise<TerminalRecord[]> {
         currentModel: String(row[colMap['currentModel']] || '').trim(),
         merchantNameMid: String(row[colMap['merchantNameMid']] || '').trim(),
         assignmentDate,
+        installationDate,
+        replacementDates,
       });
     }
     

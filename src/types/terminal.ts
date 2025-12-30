@@ -5,6 +5,8 @@ export interface TerminalRecord {
   currentModel: string;
   merchantNameMid: string;
   assignmentDate: Date;
+  installationDate?: Date;
+  replacementDates: Date[];
 }
 
 export interface SearchResult {
@@ -14,4 +16,6 @@ export interface SearchResult {
   currentModel: string;
   merchantNameMid: string;
   assignmentDate: Date;
+  installationDate?: Date;
+  replacementDates: Date[];
 }
