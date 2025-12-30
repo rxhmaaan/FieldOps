@@ -1,5 +1,6 @@
 import { SearchResult } from '@/types/terminal';
-import { Bot, Sparkles } from 'lucide-react';
+import { Bot, Sparkles, RefreshCw } from 'lucide-react';
+import { format } from 'date-fns';
 import x990Image from '@/assets/x990.png';
 import paxA920Image from '@/assets/pax_a920.png';
 
@@ -16,8 +17,25 @@ function getDeviceImage(model: string | undefined): string | null {
   return null;
 }
 
+function formatDate(date: Date): string {
+  return format(date, 'MMM dd, yyyy');
+}
+
+function getReplacementMessage(count: number): string {
+  if (count === 1) return 'This device has been replaced once';
+  if (count === 2) return 'This device has been replaced twice';
+  return `This device has been replaced ${count} times`;
+}
+
+function getOrdinal(n: number): string {
+  const ordinals = ['1st', '2nd', '3rd', '4th', '5th', '6th'];
+  return ordinals[n] || `${n + 1}th`;
+}
+
 export function ResultCard({ result }: ResultCardProps) {
   const deviceImage = getDeviceImage(result.currentModel);
+  const hasInstallationDate = result.installationDate && result.installationDate.getTime() > 0;
+  const hasReplacements = result.replacementDates && result.replacementDates.length > 0;
 
   return (
     <div className="animate-slide-up">
@@ -88,8 +106,38 @@ export function ResultCard({ result }: ResultCardProps) {
                 </p>
               )}
 
+              {/* Installation date */}
+              {hasInstallationDate && (
+                <p className="animate-fade-in" style={{ animationDelay: '0.5s' }}>
+                  📅 The device was originally installed on{' '}
+                  <span className="font-semibold text-primary">
+                    {formatDate(result.installationDate!)}
+                  </span>.
+                </p>
+              )}
+
+              {/* Replacement history */}
+              {hasReplacements && (
+                <div className="animate-fade-in bg-muted/50 rounded-xl p-4 border border-border/50" style={{ animationDelay: '0.6s' }}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <RefreshCw className="h-4 w-4 text-primary" />
+                    <span className="font-semibold text-foreground">
+                      {getReplacementMessage(result.replacementDates.length)}
+                    </span>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    {result.replacementDates.map((date, index) => (
+                      <p key={index} className="text-muted-foreground">
+                        <span className="font-medium text-foreground">{getOrdinal(index)} replacement:</span>{' '}
+                        {formatDate(date)}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Closing */}
-              <p className="text-muted-foreground text-sm pt-2 animate-fade-in" style={{ animationDelay: '0.5s' }}>
+              <p className="text-muted-foreground text-sm pt-2 animate-fade-in" style={{ animationDelay: hasReplacements ? '0.7s' : '0.5s' }}>
                 Is there anything else you'd like to know?
               </p>
             </div>
