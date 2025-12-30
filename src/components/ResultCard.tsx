@@ -1,11 +1,24 @@
 import { SearchResult } from '@/types/terminal';
 import { Bot, Sparkles } from 'lucide-react';
+import x990Image from '@/assets/x990.png';
+import paxA920Image from '@/assets/pax_a920.png';
 
 interface ResultCardProps {
   result: SearchResult;
 }
 
+// Helper to check if model matches x990 or pax a920
+function getDeviceImage(model: string | undefined): string | null {
+  if (!model) return null;
+  const lowerModel = model.toLowerCase();
+  if (lowerModel.includes('x990')) return x990Image;
+  if (lowerModel.includes('a920') || lowerModel.includes('pax')) return paxA920Image;
+  return null;
+}
+
 export function ResultCard({ result }: ResultCardProps) {
+  const deviceImage = getDeviceImage(result.currentModel);
+
   return (
     <div className="animate-slide-up">
       <div className="bg-card rounded-2xl border border-border card-elevated overflow-hidden relative">
@@ -27,56 +40,75 @@ export function ResultCard({ result }: ResultCardProps) {
 
         {/* Conversational Response */}
         <div className="p-6 relative">
-          <div className="space-y-4 text-base leading-relaxed text-foreground">
-            {/* Main response */}
-            <p className="animate-fade-in" style={{ animationDelay: '0.1s' }}>
-              I found the record you're looking for! 🎯
-            </p>
-            
-            {/* Terminal ID info */}
-            <p className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
-              The <span className="font-semibold text-primary">Terminal ID</span> is{' '}
-              <span className="font-mono font-bold text-terminal bg-primary/10 px-2 py-0.5 rounded">
-                {result.tid || 'N/A'}
-              </span>
-              {result.serialNo && (
-                <>
-                  {' '}with <span className="font-semibold text-primary">Serial Number</span>{' '}
-                  <span className="font-mono font-bold text-terminal bg-primary/10 px-2 py-0.5 rounded">
-                    {result.serialNo}
-                  </span>
-                </>
-              )}
-              .
-            </p>
-
-            {/* Merchant info */}
-            {result.merchantNameMid && (
-              <p className="animate-fade-in" style={{ animationDelay: '0.3s' }}>
-                This terminal is assigned to{' '}
-                <span className="font-semibold text-merchant">
-                  {result.merchantNameMid}
+          <div className="flex flex-col md:flex-row gap-6">
+            {/* Text content */}
+            <div className="flex-1 space-y-4 text-base leading-relaxed text-foreground">
+              {/* Main response */}
+              <p className="animate-fade-in" style={{ animationDelay: '0.1s' }}>
+                I found the record you're looking for! 🎯
+              </p>
+              
+              {/* Terminal ID info */}
+              <p className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
+                The <span className="font-semibold text-primary">Terminal ID</span> is{' '}
+                <span className="font-mono font-bold text-terminal bg-primary/10 px-2 py-0.5 rounded">
+                  {result.tid || 'N/A'}
                 </span>
-                {result.city && (
+                {result.serialNo && (
                   <>
-                    {' '}located in <span className="font-medium">{result.city}</span>
+                    {' '}with <span className="font-semibold text-primary">Serial Number</span>{' '}
+                    <span className="font-mono font-bold text-terminal bg-primary/10 px-2 py-0.5 rounded">
+                      {result.serialNo}
+                    </span>
                   </>
                 )}
                 .
               </p>
-            )}
 
-            {/* Model info */}
-            {result.currentModel && (
-              <p className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
-                The device model is <span className="font-medium">{result.currentModel}</span>.
+              {/* Merchant info */}
+              {result.merchantNameMid && (
+                <p className="animate-fade-in" style={{ animationDelay: '0.3s' }}>
+                  This terminal is assigned to{' '}
+                  <span className="font-semibold text-merchant">
+                    {result.merchantNameMid}
+                  </span>
+                  {result.city && (
+                    <>
+                      {' '}located in <span className="font-medium">{result.city}</span>
+                    </>
+                  )}
+                  .
+                </p>
+              )}
+
+              {/* Model info */}
+              {result.currentModel && (
+                <p className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
+                  The device model is <span className="font-medium">{result.currentModel}</span>.
+                </p>
+              )}
+
+              {/* Closing */}
+              <p className="text-muted-foreground text-sm pt-2 animate-fade-in" style={{ animationDelay: '0.5s' }}>
+                Is there anything else you'd like to know?
               </p>
-            )}
+            </div>
 
-            {/* Closing */}
-            <p className="text-muted-foreground text-sm pt-2 animate-fade-in" style={{ animationDelay: '0.5s' }}>
-              Is there anything else you'd like to know?
-            </p>
+            {/* Device Image - only for x990 or PAX A920 */}
+            {deviceImage && (
+              <div className="flex-shrink-0 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+                <div className="relative p-4 bg-gradient-to-br from-primary/5 to-transparent rounded-xl border border-border/50">
+                  <img 
+                    src={deviceImage} 
+                    alt={result.currentModel || 'Device'} 
+                    className="w-32 h-auto object-contain mx-auto drop-shadow-lg"
+                  />
+                  <p className="text-xs text-center text-muted-foreground mt-2 font-medium">
+                    {result.currentModel}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
