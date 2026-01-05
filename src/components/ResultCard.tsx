@@ -1,8 +1,18 @@
+import { useState } from 'react';
 import { SearchResult } from '@/types/terminal';
-import { Bot, Sparkles, RefreshCw } from 'lucide-react';
+import { Bot, Sparkles, RefreshCw, FileCheck, Lock, ExternalLink } from 'lucide-react';
 import { format } from 'date-fns';
 import x990Image from '@/assets/x990.png';
 import paxA920Image from '@/assets/pax_a920.png';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 interface ResultCardProps {
   result: SearchResult;
@@ -33,9 +43,11 @@ function getOrdinal(n: number): string {
 }
 
 export function ResultCard({ result }: ResultCardProps) {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const deviceImage = getDeviceImage(result.currentModel);
   const hasInstallationDate = result.installationDate && result.installationDate.getTime() > 0;
   const hasReplacements = result.replacementDates && result.replacementDates.length > 0;
+  const hasDeliveryNote = result.deliveryNoteUrl && result.deliveryNoteUrl.length > 0;
 
   return (
     <div className="animate-slide-up">
@@ -136,8 +148,54 @@ export function ResultCard({ result }: ResultCardProps) {
                 </div>
               )}
 
+              {/* Delivery Note - Proof of Delivery */}
+              {hasDeliveryNote && (
+                <div className="animate-fade-in" style={{ animationDelay: hasReplacements ? '0.7s' : '0.6s' }}>
+                  <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        className="gap-2 border-primary/30 hover:bg-primary/10 hover:border-primary/50"
+                      >
+                        <FileCheck className="h-4 w-4 text-primary" />
+                        View Proof of Delivery
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                          <FileCheck className="h-5 w-5 text-primary" />
+                          Proof of Delivery
+                        </DialogTitle>
+                        <DialogDescription className="pt-2">
+                          Access the delivery note for Terminal ID: <span className="font-mono font-semibold">{result.tid}</span>
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="flex flex-col gap-4 pt-4">
+                        <a 
+                          href={result.deliveryNoteUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-center gap-2 w-full p-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                          Open Delivery Note
+                        </a>
+                        <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg border border-border/50">
+                          <Lock className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                          <p className="text-xs text-muted-foreground">
+                            <span className="font-semibold">Confidential:</span> Only supervisors can access this feature. 
+                            This document contains sensitive delivery information.
+                          </p>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              )}
+
               {/* Closing */}
-              <p className="text-muted-foreground text-sm pt-2 animate-fade-in" style={{ animationDelay: hasReplacements ? '0.7s' : '0.5s' }}>
+              <p className="text-muted-foreground text-sm pt-2 animate-fade-in" style={{ animationDelay: hasDeliveryNote ? '0.8s' : (hasReplacements ? '0.7s' : '0.5s') }}>
                 Is there anything else you'd like to know?
               </p>
             </div>

@@ -68,6 +68,8 @@ export async function loadTerminalData(): Promise<TerminalRecord[]> {
         colMap['installationDate'] = idx;
       } else if (normalized.includes('replacement')) {
         replacementCols.push(idx);
+      } else if (normalized.includes('delivery') || normalized.includes('note')) {
+        colMap['deliveryNoteUrl'] = idx;
       }
     });
     
@@ -103,6 +105,11 @@ export async function loadTerminalData(): Promise<TerminalRecord[]> {
       // Sort replacement dates chronologically
       replacementDates.sort((a, b) => a.getTime() - b.getTime());
       
+      // Parse delivery note URL
+      const deliveryNoteUrl = colMap['deliveryNoteUrl'] !== undefined 
+        ? String(row[colMap['deliveryNoteUrl']] || '').trim() 
+        : undefined;
+      
       records.push({
         tid,
         serialNo,
@@ -112,6 +119,7 @@ export async function loadTerminalData(): Promise<TerminalRecord[]> {
         assignmentDate,
         installationDate,
         replacementDates,
+        deliveryNoteUrl: deliveryNoteUrl || undefined,
       });
     }
     

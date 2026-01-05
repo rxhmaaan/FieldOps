@@ -7,6 +7,7 @@ export interface TerminalRecord {
   assignmentDate: Date;
   installationDate?: Date;
   replacementDates: Date[];
+  deliveryNoteUrl?: string;
 }
 
 export interface SearchResult {
@@ -18,4 +19,5 @@ export interface SearchResult {
   assignmentDate: Date;
   installationDate?: Date;
   replacementDates: Date[];
+  deliveryNoteUrl?: string;
 }
