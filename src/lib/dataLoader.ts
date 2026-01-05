@@ -18,19 +18,61 @@ function parseExcelDate(dateValue: unknown): Date | undefined {
   return undefined;
 }
 
-type XlsxCellWithLink = XLSX.CellObject & { l?: { Target?: string } };
+type XlsxCellWithMeta = XLSX.CellObject & {
+  // xlsx uses `l` for cell hyperlinks
+  l?: { Target?: string; target?: string } | string;
+  f?: string; // formula
+  w?: string; // formatted text
+  v?: unknown; // raw value
+};
 
-function getWorksheetHyperlink(
+function normalizeUrl(url: unknown): string | undefined {
+  if (typeof url !== 'string') return undefined;
+  const trimmed = url.trim();
+  if (!trimmed) return undefined;
+  if (trimmed.toLowerCase() === 'undefined') return undefined;
+  return trimmed;
+}
+
+function extractUrlFromFormula(formula: string | undefined): string | undefined {
+  if (!formula) return undefined;
+  // Supports: HYPERLINK("https://...","label")
+  const match = formula.match(/HYPERLINK\(\s*"([^"]+)"/i);
+  return normalizeUrl(match?.[1]);
+}
+
+function extractUrlFromStringValue(value: unknown): string | undefined {
+  const url = normalizeUrl(value);
+  if (!url) return undefined;
+  // Only treat as URL if it looks like one
+  if (/^https?:\/\//i.test(url)) return url;
+  return undefined;
+}
+
+function getDeliveryNoteUrl(
   worksheet: XLSX.WorkSheet,
   rowIndex: number,
-  colIndex: number
+  colIndex: number,
+  rowValue: unknown
 ): string | undefined {
   const addr = XLSX.utils.encode_cell({ r: rowIndex, c: colIndex });
-  const cell = worksheet[addr] as XlsxCellWithLink | undefined;
-  const target = cell?.l?.Target;
-  if (typeof target !== 'string') return undefined;
-  const trimmed = target.trim();
-  return trimmed ? trimmed : undefined;
+  const cell = worksheet[addr] as XlsxCellWithMeta | undefined;
+
+  // 1) Real Excel hyperlink relationship
+  const l = cell?.l as any;
+  const linkTarget =
+    typeof l === 'string' ? l : (l?.Target as unknown) ?? (l?.target as unknown);
+  const urlFromLink = normalizeUrl(linkTarget);
+
+  // 2) Formula hyperlinks (HYPERLINK("url","label"))
+  const urlFromFormula = extractUrlFromFormula(cell?.f);
+
+  // 3) If the value itself is a URL
+  const urlFromCellValue = extractUrlFromStringValue(cell?.v);
+  const urlFromFormatted = extractUrlFromStringValue(cell?.w);
+  const urlFromRowValue = extractUrlFromStringValue(rowValue);
+
+  return urlFromLink || urlFromFormula || urlFromCellValue || urlFromFormatted || urlFromRowValue;
 }
 
 export async function loadTerminalData(): Promise<TerminalRecord[]> {
@@ -131,14 +173,12 @@ export async function loadTerminalData(): Promise<TerminalRecord[]> {
       // Sort replacement dates chronologically
       replacementDates.sort((a, b) => a.getTime() - b.getTime());
 
-      // Parse delivery note URL (supports real Excel hyperlinks)
+      // Delivery Note URL: supports actual hyperlinks + HYPERLINK() formulas + raw URLs
       const deliveryColIdx = colMap['deliveryNoteUrl'];
-      const deliveryFromHyperlink =
-        deliveryColIdx !== undefined ? getWorksheetHyperlink(worksheet, i, deliveryColIdx) : undefined;
-      const deliveryFromValue =
-        deliveryColIdx !== undefined ? String(row[deliveryColIdx] || '').trim() : undefined;
-
-      const deliveryNoteUrl = deliveryFromHyperlink || deliveryFromValue || undefined;
+      const deliveryNoteUrl =
+        deliveryColIdx !== undefined
+          ? getDeliveryNoteUrl(worksheet, i, deliveryColIdx, row[deliveryColIdx])
+          : undefined;
 
       records.push({
         tid,
