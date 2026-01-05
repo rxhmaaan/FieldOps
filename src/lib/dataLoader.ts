@@ -68,8 +68,9 @@ export async function loadTerminalData(): Promise<TerminalRecord[]> {
         colMap['installationDate'] = idx;
       } else if (normalized.includes('replacement')) {
         replacementCols.push(idx);
-      } else if (normalized.includes('delivery') || normalized.includes('note')) {
+      } else if (normalized.includes('delivery') && normalized.includes('note')) {
         colMap['deliveryNoteUrl'] = idx;
+        console.log('Found Delivery Note column at index:', idx, 'Header:', header);
       }
     });
     
