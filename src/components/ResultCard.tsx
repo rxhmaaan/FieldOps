@@ -194,10 +194,6 @@ export function ResultCard({ result }: ResultCardProps) {
                 </div>
               )}
 
-              {/* Closing */}
-              <p className="text-muted-foreground text-sm pt-2 animate-fade-in" style={{ animationDelay: hasDeliveryNote ? '0.8s' : (hasReplacements ? '0.7s' : '0.5s') }}>
-                Is there anything else you'd like to know?
-              </p>
             </div>
 
             {/* Device Image - only for x990 or PAX A920 */}
